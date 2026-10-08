@@ -26,27 +26,23 @@ class Condition(BaseCondition):
 
 
 class AND(BaseCondition):
-    condition1: BaseCondition
-    condition2: BaseCondition
+    conditions: list[BaseCondition]
 
-    def __init__(self, condition1: BaseCondition, condition2: BaseCondition):
-        self.condition1 = condition1
-        self.condition2 = condition2
+    def __init__(self, *conditions):
+        self.conditions = list(conditions)
 
     def check(self, response: requests.Response):
-        return self.condition1.check(response) and self.condition2.check(response)
+        return all([i.check(response) for i in self.conditions])
 
 
 class OR(BaseCondition):
-    condition1: BaseCondition
-    condition2: BaseCondition
+    conditions: list[BaseCondition]
 
-    def __init__(self, condition1: BaseCondition, condition2: BaseCondition):
-        self.condition1 = condition1
-        self.condition2 = condition2
+    def __init__(self, *conditions):
+        self.conditions = list(conditions)
 
     def check(self, response: requests.Response):
-        return self.condition1.check(response) or self.condition2.check(response)
+        return any([i.check(response) for i in self.conditions])
 
 
 class NOT(BaseCondition):

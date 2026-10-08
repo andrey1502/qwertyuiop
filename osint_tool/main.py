@@ -7,7 +7,7 @@ if __name__ == '__main__':
         url='https://github.com/{}/',
         found_conditions=[Condition('code', [200])],
         not_found_conditions=[AND(Condition('code', [404]),
-                                  OR(NOT(Condition('code', [200])),
+                                  OR(NOT(Condition('code', [403])),
                                      Condition('text', ['not_found'])))]  # to show abilities
     )
     codeforces = Site(
