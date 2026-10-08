@@ -1,12 +1,12 @@
 import requests
-from osint_tool.condition import Condition
+from osint_tool.condition import Condition, BaseCondition
 from osint_tool.http_client import HTTPClient
 
 
 class Site:
     url: str
-    found_conditions: list[Condition]
-    not_found_conditions: list[Condition]
+    found_conditions: list[BaseCondition]
+    not_found_conditions: list[BaseCondition]
 
     def __init__(self, **kwargs):
         self.url = kwargs['url']
