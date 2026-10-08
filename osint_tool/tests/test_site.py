@@ -1,53 +1,37 @@
 import pytest
 from unittest.mock import MagicMock
-from osint_tool.condition import Condition
 from osint_tool.site import Site
 
 
-@pytest.fixture
-def sample_site():
-    return Site(
-        url="https://example.com/{}",
-        found_conditions=[Condition('code', [200])],
-        not_found_conditions=[Condition('code', [404])]
-    )
+def test_site_check_username_returns_found_if_any_check_found():
+    mock_check_1 = MagicMock()
+    mock_check_1.check_username.return_value = 'not_found'
+
+    mock_check_2 = MagicMock()
+    mock_check_2.check_username.return_value = 'found'
+
+    site = Site(name="TestSite", checks=[mock_check_1, mock_check_2])
+
+    result = site.check_username("alex")
+
+    mock_check_1.check_username.assert_called_once_with("alex")
+    mock_check_2.check_username.assert_called_once_with("alex")
+    assert result == 'found'
 
 
-@pytest.fixture
-def mock_client():
-    """Создаёт фейковый HTTPClient для всех тестов."""
-    return MagicMock()
+def test_site_check_username_returns_not_found():
+    mock_check = MagicMock()
+    mock_check.check_username.return_value = 'not_found'
+
+    site = Site(name="TestSite", checks=[mock_check])
+
+    assert site.check_username("missing_user") == 'not_found'
 
 
-def test_check_username_returns_found(sample_site, mock_client):
-    mock_response = MagicMock()
-    mock_response.status_code = 200
-    mock_client.get.return_value = mock_response
+def test_site_check_username_returns_unknown():
+    mock_check = MagicMock()
+    mock_check.check_username.return_value = 'unknown'
 
-    status = sample_site.check_username('valid_user', client=mock_client)
+    site = Site(name="TestSite", checks=[mock_check])
 
-    # Проверяем, что клиент вызвал get с правильным сформированным URL
-    mock_client.get.assert_called_once_with('https://example.com/valid_user')
-    assert status == 'found'
-
-
-def test_check_username_returns_not_found(sample_site, mock_client):
-    mock_response = MagicMock()
-    mock_response.status_code = 404
-    mock_client.get.return_value = mock_response
-
-    status = sample_site.check_username('missing_user', client=mock_client)
-
-    mock_client.get.assert_called_once_with('https://example.com/missing_user')
-    assert status == 'not_found'
-
-
-def test_check_username_returns_unknown(sample_site, mock_client):
-    mock_response = MagicMock()
-    mock_response.status_code = 500
-    mock_client.get.return_value = mock_response
-
-    status = sample_site.check_username('unexpected_status_user', client=mock_client)
-
-    mock_client.get.assert_called_once_with('https://example.com/unexpected_status_user')
-    assert status == 'unknown'
+    assert site.check_username("some_user") == 'unknown'

@@ -1,24 +1,23 @@
 import requests
+
+from osint_tool.check import BaseCheck
 from osint_tool.condition import Condition, BaseCondition
 from osint_tool.http_client import HTTPClient
 
 
 class Site:
-    url: str
-    found_conditions: list[BaseCondition]
-    not_found_conditions: list[BaseCondition]
+    name: str
+    checks: list[BaseCheck]
 
-    def __init__(self, **kwargs):
-        self.url = kwargs['url']
-        self.found_conditions = kwargs['found_conditions']
-        self.not_found_conditions = kwargs['not_found_conditions']
+    def __init__(self, name: str, checks: list[BaseCheck]):
+        self.name = name
+        self.checks = checks
 
-    def check_username(self, username, client: HTTPClient):
-        url = self.url.format(username)
-        response = client.get(url)
-        if any([i.check(response) for i in self.found_conditions]):
+    def check_username(self, username):
+        checks_result = [i.check_username(username) for i in self.checks]
+        if 'found' in checks_result:
             return 'found'
-        elif any([i.check(response) for i in self.not_found_conditions]):
+        elif 'not_found' in checks_result:
             return 'not_found'
         else:
             return 'unknown'
